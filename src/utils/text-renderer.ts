@@ -1,4 +1,4 @@
-const DEFAULT_ASCII_CHARS = ' .epflÄ';
+const DEFAULT_ASCII_CHARS = ' .:-=+*#%@@';
 const DEFAULT_BRIGHTNESS = 2.5;
 const GAMMA = 0.9;
 const GRID_WIDTH = 120;
@@ -58,15 +58,18 @@ export function createTextRenderer(
       brightness = b;
     },
     render(data: Float32Array) {
-      ctx.fillStyle = bgColor;
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      if (bgColor !== 'transparent') {
+        ctx.fillStyle = bgColor;
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+      }
 
       colorBatches.clear();
 
       for (let y = 0; y < GRID_HEIGHT; y++) {
         for (let x = 0; x < GRID_WIDTH; x++) {
           const index = (y * GRID_WIDTH + x) * 4;
-          const charIndex = Math.floor(data[index]);
+          const charIndex = Math.floor(Math.max(0, Math.min(data[index], asciiChars.length - 1)));
           const r = Math.min(255, Math.floor(Math.pow(data[index + 1], GAMMA) * 255 * brightness));
           const g = Math.min(255, Math.floor(Math.pow(data[index + 2], GAMMA) * 255 * brightness));
           const b = Math.min(255, Math.floor(Math.pow(data[index + 3], GAMMA) * 255 * brightness));
