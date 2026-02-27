@@ -223,7 +223,8 @@ export class ASCIIRenderer {
     const { device } = this.webgpuContext;
     const { asciiWidth, asciiHeight } = this.options;
 
-    const renderPass = commandEncoder.beginRenderPass({
+    const renderEncoder = device.createCommandEncoder();
+    const renderPass = renderEncoder.beginRenderPass({
       colorAttachments: [{
         view: asciiPipeline.textureView,
         clearValue: { r: 0.0, g: 0.0, b: 0.0, a: 1 },
@@ -249,7 +250,7 @@ export class ASCIIRenderer {
     renderPass.drawIndexed(asciiPipeline.indexCount);
     renderPass.end();
 
-    device.queue.submit([commandEncoder.finish()]);
+    device.queue.submit([renderEncoder.finish()]);
 
     device.queue.onSubmittedWorkDone().then(() => {
       const computeEncoder = device.createCommandEncoder();
