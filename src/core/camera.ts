@@ -15,6 +15,7 @@ export class Camera {
   lastMouseX = 0;
   lastMouseY = 0;
   private autoRotateSpeed: number;
+  private autoRotateEnabled: boolean = true;
   private canvasElements: HTMLCanvasElement[] = [];
 
   constructor(canvas: HTMLCanvasElement, options: CameraOptions = {}) {
@@ -75,7 +76,9 @@ export class Camera {
     this.rotationY += (this.targetRotationY - this.rotationY) * 0.1;
     this.distance += (this.targetDistance - this.distance) * 0.1;
     
-    this.targetRotationY += this.autoRotateSpeed;
+    if (this.autoRotateEnabled) {
+      this.targetRotationY += this.autoRotateSpeed;
+    }
   }
 
   setDistance(distance: number) {
@@ -85,6 +88,16 @@ export class Camera {
   setRotation(x: number, y: number) {
     this.targetRotationX = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, x));
     this.targetRotationY = y;
+  }
+
+  setAutoRotate(enabled: boolean) {
+    this.autoRotateEnabled = enabled;
+  }
+
+  incrementRotation(deltaX: number, deltaY: number) {
+    this.targetRotationY += deltaX;
+    this.targetRotationX += deltaY;
+    this.targetRotationX = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, this.targetRotationX));
   }
 
   dispose() {

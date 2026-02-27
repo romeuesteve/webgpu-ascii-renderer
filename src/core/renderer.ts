@@ -342,6 +342,18 @@ export class ASCIIRenderer {
     }
   }
 
+  setAutoRotate(enabled: boolean): void {
+    if (this.camera) {
+      this.camera.setAutoRotate(enabled);
+    }
+  }
+
+  incrementRotation(deltaX: number, deltaY: number): void {
+    if (this.camera) {
+      this.camera.incrementRotation(deltaX, deltaY);
+    }
+  }
+
   setFontSize(size: number): void {
     if (this.textRenderer) {
       this.textRenderer.setFontSize(size);
