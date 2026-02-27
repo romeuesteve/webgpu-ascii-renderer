@@ -1,0 +1,34 @@
+# Source files
+src/
+examples/
+
+# Development files
+*.tsbuildinfo
+.vite/
+.vscode/
+.git/
+.gitignore
+
+# Build artifacts (except dist)
+node_modules/
+convert-*.ts
+convert-*.js
+
+# Documentation (except README and LICENSE)
+docs/
+
+# CI/CD
+.github/
+
+# Testing
+test/
+tests/
+*.test.ts
+*.spec.ts
+
+# Misc
+.DS_Store
+*.log
+.editorconfig
+.eslintrc*
+.prettierrc*
