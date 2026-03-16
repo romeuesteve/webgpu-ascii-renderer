@@ -15,7 +15,7 @@ const DEFAULT_AUTO_ROTATE_SPEED = 0.005;
 const DEFAULT_INITIAL_DISTANCE = 8;
 
 export class ASCIIRenderer {
-  private options: Required<ASCIIRendererOptions>;
+  private options: Omit<Required<ASCIIRendererOptions>, 'asciiPattern'> & { asciiPattern?: string };
   private canvas: HTMLCanvasElement;
   private asciiCanvas: HTMLCanvasElement;
   private state: {
@@ -25,8 +25,9 @@ export class ASCIIRenderer {
     isDisposed: boolean;
     frameCount: number;
     lastTime: number;
+    lightIntensity: number;
   };
-  
+
   private webgpuContext: WebGPUContext | null = null;
   private camera: Camera | null = null;
   private textRenderer: ReturnType<typeof createTextRenderer> | null = null;
@@ -36,7 +37,7 @@ export class ASCIIRenderer {
   constructor(options: ASCIIRendererOptions) {
     this.canvas = options.canvas;
     this.asciiCanvas = document.createElement('canvas');
-    
+
     this.state = {
       mode: options.mode || 'ascii',
       fps: 0,
@@ -44,6 +45,7 @@ export class ASCIIRenderer {
       isDisposed: false,
       frameCount: 0,
       lastTime: performance.now(),
+      lightIntensity: 1.0,
     };
 
     this.options = {
@@ -54,6 +56,7 @@ export class ASCIIRenderer {
       asciiHeight: options.asciiHeight || DEFAULT_ASCII_HEIGHT,
       fontSize: options.fontSize || DEFAULT_FONT_SIZE,
       asciiChars: options.asciiChars || ' .epflÄ',
+      asciiPattern: options.asciiPattern,
       gamma: options.gamma !== undefined ? options.gamma : DEFAULT_GAMMA,
       brightness: options.brightness !== undefined ? options.brightness : DEFAULT_BRIGHTNESS,
       bgColor: options.bgColor || DEFAULT_BG_COLOR,
@@ -143,6 +146,7 @@ export class ASCIIRenderer {
     this.textRenderer = createTextRenderer(this.asciiCanvas, {
       fontSize: this.options.fontSize,
       asciiChars: this.options.asciiChars,
+      asciiPattern: this.options.asciiPattern,
       brightness: this.options.brightness,
       bgColor: this.options.bgColor,
     });
@@ -213,7 +217,7 @@ export class ASCIIRenderer {
   }
 
   private renderASCII(
-    commandEncoder: GPUCommandEncoder,
+    _commandEncoder: GPUCommandEncoder,
     asciiPipeline: any,
     computePipeline: any,
     depthTexture: GPUTexture
@@ -365,6 +369,23 @@ export class ASCIIRenderer {
     if (this.textRenderer) {
       this.textRenderer.setAsciiChars(chars);
     }
+  }
+
+  setAsciiPattern(pattern: string): void {
+    if (this.textRenderer) {
+      this.textRenderer.setAsciiPattern(pattern);
+    }
+  }
+
+  setLightIntensity(intensity: number): void {
+    this.state.lightIntensity = Math.max(0, Math.min(1, intensity));
+    if (this.textRenderer) {
+      this.textRenderer.setBrightnessMultiplier(intensity);
+    }
+  }
+
+  getLightIntensity(): number {
+    return this.state.lightIntensity;
   }
 
   getFPS(): number {

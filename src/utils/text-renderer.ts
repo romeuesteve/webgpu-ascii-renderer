@@ -1,3 +1,5 @@
+import { parsePattern, getPatternChar, type ParsedPattern } from './pattern-parser.js';
+
 const DEFAULT_ASCII_CHARS = ' .:-=+*#%@@';
 const DEFAULT_BRIGHTNESS = 2.5;
 const GAMMA = 0.9;
@@ -7,6 +9,7 @@ const GRID_HEIGHT = 80;
 export interface TextRendererOptions {
   fontSize?: number;
   asciiChars?: string;
+  asciiPattern?: string;
   brightness?: number;
   bgColor?: string;
 }
@@ -27,8 +30,15 @@ export function createTextRenderer(
 
   const fontSize = options.fontSize || 12;
   let asciiChars = options.asciiChars || DEFAULT_ASCII_CHARS;
+  const asciiPattern = options.asciiPattern;
   let brightness = options.brightness !== undefined ? options.brightness : DEFAULT_BRIGHTNESS;
+  let brightnessMultiplier = 1.0;
   const bgColor = options.bgColor || '#0a0a0a';
+
+  let parsedPattern: ParsedPattern | null = null;
+  if (asciiPattern) {
+    parsedPattern = parsePattern(asciiPattern);
+  }
 
   let CELL_WIDTH = Math.round(fontSize * 8 / 12);
   let CELL_HEIGHT = fontSize;
@@ -54,8 +64,14 @@ export function createTextRenderer(
     setAsciiChars(chars: string) {
       asciiChars = chars;
     },
+    setAsciiPattern(pattern: string) {
+      parsedPattern = parsePattern(pattern);
+    },
     setBrightness(b: number) {
       brightness = b;
+    },
+    setBrightnessMultiplier(multiplier: number) {
+      brightnessMultiplier = Math.max(0, Math.min(1, multiplier));
     },
     render(data: Float32Array) {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -70,11 +86,16 @@ export function createTextRenderer(
         for (let x = 0; x < GRID_WIDTH; x++) {
           const index = (y * GRID_WIDTH + x) * 4;
           const charIndex = Math.floor(Math.max(0, Math.min(data[index], asciiChars.length - 1)));
-          const r = Math.min(255, Math.floor(Math.pow(data[index + 1], GAMMA) * 255 * brightness));
-          const g = Math.min(255, Math.floor(Math.pow(data[index + 2], GAMMA) * 255 * brightness));
-          const b = Math.min(255, Math.floor(Math.pow(data[index + 3], GAMMA) * 255 * brightness));
+          const r = Math.min(255, Math.floor(Math.pow(data[index + 1], GAMMA) * 255 * brightness * brightnessMultiplier));
+          const g = Math.min(255, Math.floor(Math.pow(data[index + 2], GAMMA) * 255 * brightness * brightnessMultiplier));
+          const b = Math.min(255, Math.floor(Math.pow(data[index + 3], GAMMA) * 255 * brightness * brightnessMultiplier));
 
-          const char = asciiChars[Math.min(charIndex, asciiChars.length - 1)];
+          let char: string;
+          if (parsedPattern) {
+            char = getPatternChar(parsedPattern, charIndex, x, y);
+          } else {
+            char = asciiChars[Math.min(charIndex, asciiChars.length - 1)];
+          }
           const colorKey = (r << 16) | (g << 8) | b;
 
           let batch = colorBatches.get(colorKey.toString());

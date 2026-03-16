@@ -8,6 +8,7 @@ export interface ASCIIRendererOptions {
   asciiHeight?: number;
   fontSize?: number;
   asciiChars?: string;
+  asciiPattern?: string;
   gamma?: number;
   brightness?: number;
   bgColor?: string;
